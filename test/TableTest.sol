@@ -8,16 +8,17 @@ abstract contract TableTest is Test {
 
     function tableLength() internal virtual returns (uint256);
 
-    modifier tableTest(function() internal setUp) {
-        setUp();
+    modifier tableTest(function() internal initCases) {
+        initCases();
 
         uint256 numCases = tableLength();
         for (uint256 i; i < numCases; i++) {
-            console.log("Running scenario", i + 1);
+            console.log("=========== Case #%d ===========", i + 1);
             tableTestIndex = i;
             uint256 snapshot = vm.snapshotState();
             _;
             vm.revertToState(snapshot);
+            console.log("===============================");
         }
     }
 }
