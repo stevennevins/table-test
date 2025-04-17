@@ -21,7 +21,7 @@ contract CounterTest is TableTest {
 
     FailureCase[] internal failureCases;
     FailureCase internal fc;
-    
+
     Counter public counter;
 
     function setUp() public {
@@ -32,7 +32,6 @@ contract CounterTest is TableTest {
         counter.increment();
         assertEq(counter.number(), 1);
     }
-
 
     function setupCases() public {
         cases.push(Case(0, 1));
