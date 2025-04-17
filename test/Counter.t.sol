@@ -11,8 +11,17 @@ contract CounterTest is TableTest {
         uint256 expected;
     }
 
+    struct FailureCase {
+        uint256 input;
+        bytes4 expectedError;
+    }
+
     Case[] internal cases;
     Case internal c;
+
+    FailureCase[] internal failureCases;
+    FailureCase internal fc;
+    
     Counter public counter;
 
     function setUp() public {
@@ -24,19 +33,16 @@ contract CounterTest is TableTest {
         assertEq(counter.number(), 1);
     }
 
-    function testFuzz_SetNumber(uint256 x) public {
-        counter.setNumber(x);
-        assertEq(counter.number(), x);
-    }
 
-    function setupIncrementCases() public {
+    function setupCases() public {
         cases.push(Case(0, 1));
         cases.push(Case(1, 2));
         cases.push(Case(5, 6));
         cases.push(Case(100, 101));
+        tableLength = cases.length;
     }
 
-    function testTable_Increment() public tableTest(setupIncrementCases) {
+    function testTable_Increment() public tableTest(setupCases) {
         c = cases[tableTestIndex];
 
         counter.setNumber(c.input);
@@ -46,7 +52,15 @@ contract CounterTest is TableTest {
         assertEq(counter.number(), c.expected, "Increment calculation incorrect");
     }
 
-    function tableLength() internal view override returns (uint256) {
-        return cases.length;
+    function setupFailureCases() public {
+        failureCases.push(FailureCase(counter.MAX_NUMBER() + 1, Counter.NumberTooLargeError.selector));
+        failureCases.push(FailureCase(type(uint256).max, Counter.NumberTooLargeError.selector));
+        tableLength = failureCases.length;
+    }
+
+    function testTable_SetNumber_failures() public tableTest(setupFailureCases) {
+        fc = failureCases[tableTestIndex];
+        vm.expectRevert(fc.expectedError);
+        counter.setNumber(fc.input);
     }
 }
